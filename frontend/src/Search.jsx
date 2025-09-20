@@ -3,35 +3,34 @@ import axios from "axios";
 import { useState } from "react";
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import PauseCircleIcon from '@mui/icons-material/PauseCircle';
+import SearchIcon from '@mui/icons-material/Search';
 import { useRef } from "react";
 import { useEffect } from "react";
+import Socket from "./context/Socket.js";
 
-function Search() {
+function Search({ roomid }) {
 
   const [result, setresult] = useState()
   const [query, setquery] = useState()
   const playerref = useRef({})
   const [apiready, setapiready] = useState(false)
-  const [play, setplay] = useState(true)
-  const [pause, setpause] = useState(false)
+  const [playingindex, setplayingindex] = useState(null)
+  const [sent,setsent] = useState()
 
   useEffect(() => {
-    if (!window.YT) {
-      const script = document.createElement("script");
-      script.src = "https://www.youtube.com/iframe_api";
-      document.body.appendChild(script);
+    if (window.YT) {
       window.onYouTubeIframeAPIReady = () => {
         setapiready(true)
       }
-    } else {
-      setapiready(true)
+    }else{
+      setapiready(false)
     }
   }, [])
 
   useEffect(() => {
     if (apiready && result) {
       result.forEach((video, index) => {
-        if (!playerref.current[index]) {
+        // if (!playerref.current[index]) {
           playerref.current[index] = new YT.Player(`ytplayer-${index}`,
             {
               videoId: video.videoId,
@@ -44,22 +43,55 @@ function Search() {
                 iv_load_policy: 3, // disables annotations
               },
             });
-        }
+        // }
       });
     }
   }, [apiready, result]);
 
   const playVideo = (index) => {
-    setplay(false)
-    setpause(true)
-    playerref.current[index]?.playVideo();
+    if (playingindex !== null) {
+      playerref.current[playingindex]?.pauseVideo()
+    }
+    if (sent !== index) {
+      Socket.emit("send-video", { roomid: roomid, id: Socket.id, video: result[index] })
+      setsent(index)
+    } else {
+      Socket.emit("play-video", { roomid: roomid })
+    }
+    setTimeout(() => { 
+      playerref.current[index]?.playVideo();
+    }, 1500);
+    setplayingindex(index)
   };
 
   const pauseVideo = (index) => {
-    setpause(false)
-    setplay(true)
     playerref.current[index]?.pauseVideo();
+    Socket.emit("pause-video", { roomid: roomid, id : Socket.id })
+    setplayingindex(null)
   };
+
+  useEffect(() => {
+    Socket.on("receive-video", ({ video }) => {
+      setresult([video])
+      setTimeout(() => {
+        playerref.current[0]?.playVideo();
+      }, 1500);
+    })
+
+    Socket.on("play", ({ }) => {
+      playerref.current[0]?.playVideo();
+    })
+
+    Socket.on("pause", ({ }) => {
+      playerref.current[0]?.pauseVideo();
+    })
+
+    return () => {
+      Socket.off("receive-video");
+      Socket.off("play");
+      Socket.off("pause");
+    }
+  }, [result])
 
   async function search() {
     try {
@@ -67,6 +99,8 @@ function Search() {
         headers: { "Content-Type": "application/json" }
       }
       const response = await axios.post(`${import.meta.env.VITE_BACKEND}search`, { query }, configuration)
+      Object.values(playerref.current).forEach(player => { player.destroy() })
+      playerref.current = {}
       setresult(response.data)
     } catch (error) {
       console.log(error)
@@ -75,7 +109,7 @@ function Search() {
 
   return (
     <>
-      <Box component={'section'} sx={{ paddingInline: 5}}>
+      <Box component={'section'}>
         <Grid container spacing={5} alignItems={'center'}>
           <Grid size={{ xs: 12, md: 10 }}>
             <TextField
@@ -91,28 +125,32 @@ function Search() {
               fullWidth
               variant="contained"
               onClick={search}
-              sx={{ paddingInline: 6 }}
-            >search</Button>
+              sx={{ paddingInline: 3 }}
+              size="small"
+            ><SearchIcon /></Button>
           </Grid>
           <Grid size={12}>
-            <Box component={'div'} sx={{ height: { xs: 100, lg: '65dvh' }, overflow: 'auto', scrollbarWidth: "none" }}>
+            <Box component={'div'} sx={{ height: { xs: '65dvh', lg: '65dvh' }, overflow: 'auto', scrollbarWidth: "none" }}>
               {
                 result && result.map((element, index) => (
-                  <Card key={index} sx={{ marginBlock: 3 }}>
+                  <Card key={index}>
                     <Box component={'div'} id={`ytplayer-${index}`} sx={{ height: 200 }}></Box>
+                    <CardMedia component={'img'} src={element.thumbnail} />
                     <Box display={'flex'} alignItems={'center'}>
                       <CardContent>
                         <Typography variant="subtitle1" gutterBottom>{element.title}</Typography>
+                        <Typography variant="subtitle1" gutterBottom>{element.duration}</Typography>
                       </CardContent>
                       {
-                        play && <IconButton onClick={() => playVideo(index)} size="large" >
-                          <PlayCircleIcon fontSize="large" />
-                        </IconButton>
-                      }
-                      {
-                        pause && <IconButton onClick={() => pauseVideo(index)} size="large">
-                          <PauseCircleIcon fontSize="large" />
-                        </IconButton>
+                        playingindex == index ? (
+                          <IconButton onClick={() => pauseVideo(index)} size="large">
+                            <PauseCircleIcon fontSize="large" />
+                          </IconButton>
+                        ) : (
+                          <IconButton onClick={() => playVideo(index)} size="large" >
+                            <PlayCircleIcon fontSize="large" />
+                          </IconButton>
+                        )
                       }
                     </Box>
                   </Card>

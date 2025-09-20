@@ -5,6 +5,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate } from "react-router-dom";
 import Socket from "./context/Socket.js";
 import { useState } from "react";
+import { useEffect } from "react";
 
 function Home() {
     const [roomid, setroomid] = useState()
@@ -20,12 +21,8 @@ function Home() {
         if (!roomid) {
             setopen(true)
         } else {
-            Socket.emit("join-room", { roomid:roomid })
-            navigate(`/create/${roomid}`, {
-                state: {
-                    join: true,
-                }
-            })
+            Socket.emit("join-room", { roomid: roomid })
+            navigate(`/create/${roomid}`)
         }
     }
 
@@ -66,7 +63,7 @@ function Home() {
                                         <Typography variant="body2">Join</Typography>
                                     </Button>
                                 </Box>
-                                <Typography variant="body1" textAlign={'center'} gutterBottom sx={{ mt: 1, fontWeight:'bold' }}>(or)</Typography>
+                                <Typography variant="body1" textAlign={'center'} gutterBottom sx={{ mt: 1, fontWeight: 'bold' }}>(or)</Typography>
                                 <Button fullWidth sx={{ mt: 1, borderRadius: 10, padding: 1.5 }} variant="contained" size="small" onClick={CreateRoom}>
                                     <ControlPointIcon sx={{ color: 'white', marginInline: 1 }} />
                                     <Typography variant="body2">Create New Room</Typography>

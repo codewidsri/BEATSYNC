@@ -19,7 +19,7 @@ const io = new Server(server, {
 
 app.use(cors({
     origin: process.env.FRONTEND,
-    methods: ["POST"],
+    methods: ["POST", "GET"],
     credentials: true
 }));
 app.use(express.json())
@@ -29,8 +29,9 @@ app.use('/api/v1', router)
 let groups = {}
 
 io.on("connection", (socket) => {
+    console.log(socket.id + " joined")
     socket.on("create-room", () => {
-        groups[socket.id] = []
+        groups[socket.id] = [socket.id]
         socket.join(socket.id)
     })
 
@@ -41,24 +42,34 @@ io.on("connection", (socket) => {
     })
 
     socket.on("get-members", ({ roomid }) => {
-        const members = groups[roomid]
-        if (!members.includes(roomid)) {
-            members.push(roomid)
-        }
-        for (let index = 0; index < members.length; index++) {
-            io.to(members[index]).emit("group-members", { members })
-        }
+        const members = groups[roomid] || []
+        members.forEach(memberId => {
+            io.to(memberId).emit("group-members", { members })
+        })
     })
 
     socket.on("send-message", ({ roomid, message }) => {
-        const members = groups[roomid]
-        for (let index = 0; index < members.length; index++) {
-            io.to(members[index]).emit("receive-message", { message })
-        }
+        io.to(roomid).emit("receive-message", { message })
+    })
+
+    socket.on("send-video", ({ roomid, id, video }) => {
+        let members = groups[roomid] || []
+        members = members.filter(item => item !== id);
+        io.to(members).emit("receive-video", { video })
+    })
+
+    socket.on("pause-video", ({ roomid, id }) => {
+        let members = groups[roomid] || []
+        members = members.filter(item => item !== id)
+        io.to(members).emit("pause", {})
+    })
+
+    socket.on("play-video", ({ roomid }) => {
+        const members = groups[roomid] || []
+        io.to(members).emit("play", {});
     })
 
     socket.on("disconnect", () => {
-        console.log(`${socket.id} was disconnected`)
         for (let roomid in groups) {
             groups[roomid] = groups[roomid].filter(id => id !== socket.id)
             if (groups[roomid].length == 0) {

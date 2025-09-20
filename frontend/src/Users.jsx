@@ -11,13 +11,13 @@ import { useState } from "react";
 
 const Item = styled(Box)({
     padding: 10,
-    marginTop: 5,
+    marginTop: 10,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between'
 })
 
-function Users({ join, roomid }) {
+function Users({ roomid }) {
 
     const [users, setusers] = useState([])
     const [open, setopen] = useState(false)
@@ -46,51 +46,38 @@ function Users({ join, roomid }) {
             <Box component={'section'}>
                 <Paper elevation={5}>
                     <Stack>
+                        <Collapse in={open} sx={{ width: '100%' }}>
+                            <Alert
+                                severity="success"
+                                action={
+                                    <IconButton size="small" onClick={() => setopen(false)}>
+                                        <CloseIcon />
+                                    </IconButton>
+                                }
+                            >
+                                <AlertTitle>copied</AlertTitle>
+                            </Alert>
+                        </Collapse>
                         <Item>
-                            <Collapse in={open} sx={{ width: '100%' }}>
-                                <Alert
-                                    severity="success"
-                                    action={
-                                        <IconButton size="small" onClick={() => setopen(false)}>
-                                            <CloseIcon />
-                                        </IconButton>
-                                    }
-                                >
-                                    <AlertTitle>copied</AlertTitle>
-                                </Alert>
-                            </Collapse>
-                        </Item>
-                        <Item>
-                            {
-                                join ? (
-                                    <>
-                                        <Chip label={`Room ${roomid}`} icon={<Tag />} />
-                                        <IconButton size="small" onClick={() => CopyRoomId(roomid)}><ContentCopyIcon /></IconButton>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Chip label={`Room ${Socket.id}`} icon={<Tag />} />
-                                        <IconButton size="small" onClick={() => CopyRoomId(Socket.id)}><ContentCopyIcon /></IconButton>
-                                    </>
-                                )
-                            }
+                            <Chip label={`Room ${roomid}`} icon={<Tag />} />
+                            <IconButton size="small" onClick={() => CopyRoomId(roomid)}><ContentCopyIcon /></IconButton>
                         </Item>
                         <Divider />
                         <Item>
                             <IconButton> <GroupIcon /> </IconButton>
-                            <Typography gutterBottom variant="body1" sx={{ flexGrow: 1 }}>connected users</Typography>
+                            <Typography variant="body1" sx={{ flexGrow: 1 }}>connected users</Typography>
                         </Item>
                         <Item>
-                            <List sx={{ width: '100%' }}>
+                            <List sx={{ width: '100%', height: { lg: '30dvh' }, overflow: 'auto' }} dense={true}>
                                 {
                                     users && users.length != 0 && users.map((element, index) => (
-                                        <ListItemButton key={index+1}>
+                                        <ListItemButton key={index + 1}>
                                             <ListItemAvatar>
-                                                <Avatar>
+                                                <Avatar sizes="small">
                                                     <PersonIcon />
                                                 </Avatar>
                                             </ListItemAvatar>
-                                            <ListItemText primary={element} secondary={element === Socket.id ? "YOU" : ""} />
+                                            <ListItemText primary={element} secondary={element === Socket.id ? "(you)" : ""} />
                                         </ListItemButton>
                                     ))
                                 }
