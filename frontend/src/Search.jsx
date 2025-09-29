@@ -1,4 +1,4 @@
-import { Box, Button, Card, CardContent, CardMedia, Grid, IconButton, TextField, Typography } from "@mui/material";
+import { Box, Button, Card, CardContent, Grid, IconButton, TextField, Typography } from "@mui/material";
 import axios from "axios";
 import { useState } from "react";
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
@@ -10,27 +10,26 @@ import Socket from "./context/Socket.js";
 
 function Search({ roomid }) {
 
-  const [result, setresult] = useState()
-  const [query, setquery] = useState()
+  const [result, setresult] = useState(null)
+  const [query, setquery] = useState(null)
   const playerref = useRef({})
   const [apiready, setapiready] = useState(false)
   const [playingindex, setplayingindex] = useState(null)
-  const [sent,setsent] = useState()
+  const [sent, setsent] = useState(null)
+  const [autoplayIndex, setAutoplayIndex] = useState(null)
 
   useEffect(() => {
-    if (window.YT) {
-      window.onYouTubeIframeAPIReady = () => {
-        setapiready(true)
-      }
-    }else{
-      setapiready(false)
+    if (window.YT && window.YT.Player) {
+      setapiready(true);
+    } else {
+      window.onYouTubeIframeAPIReady = () => setapiready(true);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
     if (apiready && result) {
       result.forEach((video, index) => {
-        // if (!playerref.current[index]) {
+        if (!playerref.current[index]) {
           playerref.current[index] = new YT.Player(`ytplayer-${index}`,
             {
               videoId: video.videoId,
@@ -42,8 +41,18 @@ function Search({ roomid }) {
                 fs: 0,             // removes fullscreen button
                 iv_load_policy: 3, // disables annotations
               },
+              events: {
+                onReady: () => {
+                  if (autoplayIndex == index) {
+                    Socket.emit("we-are-ready", { roomid: roomid, id: Socket.id })
+                    setplayingindex(0)
+                    setAutoplayIndex(null)
+                    setsent(0)
+                  }
+                }
+              }
             });
-        // }
+        }
       });
     }
   }, [apiready, result]);
@@ -53,45 +62,57 @@ function Search({ roomid }) {
       playerref.current[playingindex]?.pauseVideo()
     }
     if (sent !== index) {
-      Socket.emit("send-video", { roomid: roomid, id: Socket.id, video: result[index] })
+      Socket.emit("send-video", { roomid: roomid, video: [result[index]] })
       setsent(index)
     } else {
       Socket.emit("play-video", { roomid: roomid })
     }
-    setTimeout(() => { 
-      playerref.current[index]?.playVideo();
-    }, 1500);
-    setplayingindex(index)
+    Object.values(playerref.current).forEach(player => { player.destroy && player.destroy() });
+    playerref.current = {};
+    setresult([result[index]])
+    setplayingindex(0)
+    setAutoplayIndex(0)
   };
 
   const pauseVideo = (index) => {
     playerref.current[index]?.pauseVideo();
-    Socket.emit("pause-video", { roomid: roomid, id : Socket.id })
+    Socket.emit("pause-video", { roomid: roomid, id: Socket.id })
     setplayingindex(null)
   };
 
   useEffect(() => {
+
     Socket.on("receive-video", ({ video }) => {
-      setresult([video])
-      setTimeout(() => {
-        playerref.current[0]?.playVideo();
-      }, 1500);
+      Object.values(playerref.current).forEach(player => { player.destroy && player.destroy() });
+      playerref.current = {};
+      setresult(video);
+      setAutoplayIndex(0);
+      setsent(0);
+    })
+
+    Socket.on("ready", ({ }) => {
+      playerref.current[0]?.playVideo();
+      setplayingindex(0)
     })
 
     Socket.on("play", ({ }) => {
       playerref.current[0]?.playVideo();
+      setplayingindex(0)
     })
 
     Socket.on("pause", ({ }) => {
       playerref.current[0]?.pauseVideo();
+      setplayingindex(null)
     })
 
     return () => {
       Socket.off("receive-video");
+      Socket.off("ready");
       Socket.off("play");
       Socket.off("pause");
     }
-  }, [result])
+
+  }, [result, playingindex, autoplayIndex])
 
   async function search() {
     try {
@@ -135,7 +156,6 @@ function Search({ roomid }) {
                 result && result.map((element, index) => (
                   <Card key={index}>
                     <Box component={'div'} id={`ytplayer-${index}`} sx={{ height: 200 }}></Box>
-                    <CardMedia component={'img'} src={element.thumbnail} />
                     <Box display={'flex'} alignItems={'center'}>
                       <CardContent>
                         <Typography variant="subtitle1" gutterBottom>{element.title}</Typography>

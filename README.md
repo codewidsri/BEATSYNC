@@ -10,4 +10,4 @@ VITE_SOCKET_BACKEND = http://localhost:3000/
 
 ##### on backend .env file contains
 
-FRONTEND = http://localhost:5713
+FRONTEND = http://localhost:5173

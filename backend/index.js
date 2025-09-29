@@ -27,6 +27,7 @@ app.use(express.json())
 app.use('/api/v1', router)
 
 let groups = {}
+let ready = {}
 
 io.on("connection", (socket) => {
     console.log(socket.id + " joined")
@@ -43,19 +44,29 @@ io.on("connection", (socket) => {
 
     socket.on("get-members", ({ roomid }) => {
         const members = groups[roomid] || []
-        members.forEach(memberId => {
-            io.to(memberId).emit("group-members", { members })
-        })
+        io.to(members).emit("group-members", { members })
     })
 
     socket.on("send-message", ({ roomid, message }) => {
-        io.to(roomid).emit("receive-message", { message })
+        const members = groups[roomid] || []
+        io.to(members).emit("receive-message", { message })
     })
 
-    socket.on("send-video", ({ roomid, id, video }) => {
+    socket.on("send-video", ({ roomid, video }) => {
         let members = groups[roomid] || []
-        members = members.filter(item => item !== id);
+        members = members.filter(item => item !== roomid);
         io.to(members).emit("receive-video", { video })
+        ready[roomid] = []
+    })
+
+    socket.on("we-are-ready", ({ roomid, id }) => {
+        const members = groups[roomid] || []
+        ready[roomid].push(id)
+        if (ready[roomid].length == members.length) {
+            io.to(members).emit("ready", {})
+            console.log(" ready "+ready[roomid])
+            ready[roomid] = []
+        }
     })
 
     socket.on("pause-video", ({ roomid, id }) => {
@@ -77,7 +88,6 @@ io.on("connection", (socket) => {
                 console.log(`Room ${roomid} deleted (empty)`);
             }
         }
-        console.log(JSON.stringify(groups))
     })
 })
 
