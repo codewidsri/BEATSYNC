@@ -1,11 +1,13 @@
 import styled from "@emotion/styled"
-import { Alert, AlertTitle, Avatar, Box, Chip, Collapse, Divider, IconButton, List, ListItemAvatar, ListItemButton, ListItemText, Paper, Stack, Typography } from "@mui/material"
+import { Accordion, AccordionDetails, AccordionSummary, Alert, AlertTitle, Avatar, Box, Chip, Collapse, Divider, IconButton, List, ListItemAvatar, ListItemButton, ListItemText, Paper, Stack, Typography } from "@mui/material"
 import Socket from "./context/Socket.js";
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import Tag from '@mui/icons-material/Tag';
 import GroupIcon from '@mui/icons-material/Group';
 import CloseIcon from '@mui/icons-material/Close';
 import PersonIcon from '@mui/icons-material/Person';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import { useEffect } from "react";
 import { useState } from "react";
 
@@ -21,6 +23,7 @@ function Users({ roomid }) {
 
     const [users, setusers] = useState([])
     const [open, setopen] = useState(false)
+    const isMobile = useMediaQuery('(max-width:600px)');
 
     useEffect(() => {
         Socket.emit("get-members", { roomid: roomid })
@@ -59,30 +62,63 @@ function Users({ roomid }) {
                             </Alert>
                         </Collapse>
                         <Item>
-                            <Chip label={`Room ${roomid}`} icon={<Tag />} />
+                            <Chip label={`${roomid}`} icon={<Tag />} />
                             <IconButton size="small" onClick={() => CopyRoomId(roomid)}><ContentCopyIcon /></IconButton>
                         </Item>
                         <Divider />
-                        <Item>
-                            <IconButton> <GroupIcon /> </IconButton>
-                            <Typography variant="body1" sx={{ flexGrow: 1 }}>connected users</Typography>
-                        </Item>
-                        <Item>
-                            <List sx={{ width: '100%', height: { lg: '30dvh' }, overflow: 'auto' }} dense={true}>
-                                {
-                                    users && users.length != 0 && users.map((element, index) => (
-                                        <ListItemButton key={index + 1}>
-                                            <ListItemAvatar>
-                                                <Avatar sizes="small">
-                                                    <PersonIcon />
-                                                </Avatar>
-                                            </ListItemAvatar>
-                                            <ListItemText primary={element} secondary={element === Socket.id ? "(you)" : ""} />
-                                        </ListItemButton>
-                                    ))
-                                }
-                            </List>
-                        </Item>
+                        {
+                            isMobile ? (
+                                <>
+                                    <Accordion>
+                                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                <Box sx={{ mr: 1 }}> <GroupIcon /> </Box>
+                                                <p>connected users</p>
+                                            </Box>
+                                        </AccordionSummary>
+                                        <AccordionDetails>
+                                            <List sx={{ width: '100%', height: { lg: '30dvh' }, overflow: 'auto' }} dense={true}>
+                                                {
+                                                    users && users.length != 0 && users.map((element, index) => (
+                                                        <ListItemButton key={index + 1}>
+                                                            <ListItemAvatar>
+                                                                <Avatar sizes="small">
+                                                                    <PersonIcon />
+                                                                </Avatar>
+                                                            </ListItemAvatar>
+                                                            <ListItemText primary={element} secondary={element === Socket.id ? "(you)" : ""} />
+                                                        </ListItemButton>
+                                                    ))
+                                                }
+                                            </List>
+                                        </AccordionDetails>
+                                    </Accordion>
+                                </>
+                            ) : (
+                                <>
+                                    <Item>
+                                        <IconButton> <GroupIcon /> </IconButton>
+                                        <Typography variant="body1" sx={{ flexGrow: 1 }}>connected users</Typography>
+                                    </Item>
+                                    <Item>
+                                        <List sx={{ width: '100%', height: { lg: '30dvh' }, overflow: 'auto' }} dense={true}>
+                                            {
+                                                users && users.length != 0 && users.map((element, index) => (
+                                                    <ListItemButton key={index + 1}>
+                                                        <ListItemAvatar>
+                                                            <Avatar sizes="small">
+                                                                <PersonIcon />
+                                                            </Avatar>
+                                                        </ListItemAvatar>
+                                                        <ListItemText primary={element} secondary={element === Socket.id ? "(you)" : ""} />
+                                                    </ListItemButton>
+                                                ))
+                                            }
+                                        </List>
+                                    </Item>
+                                </>
+                            )
+                        }
                     </Stack>
                 </Paper>
             </Box>

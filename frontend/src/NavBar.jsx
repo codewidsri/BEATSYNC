@@ -1,4 +1,4 @@
-import { Box, Icon, IconButton, Toolbar, Typography } from "@mui/material"
+import { Box, IconButton, Toolbar, Typography } from "@mui/material"
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import GitHubIcon from '@mui/icons-material/GitHub';

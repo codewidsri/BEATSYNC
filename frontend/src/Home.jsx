@@ -5,7 +5,6 @@ import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate } from "react-router-dom";
 import Socket from "./context/Socket.js";
 import { useState } from "react";
-import { useEffect } from "react";
 
 function Home() {
     const [roomid, setroomid] = useState()

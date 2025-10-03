@@ -1,6 +1,6 @@
 async function Search(req, res, next) {
     try {
-        const query = req.body.query.split(" ").join("+");
+        const query = req.body.searchquery.split(" ").join("+");
         const api = `https://www.youtube.com/results?search_query=${query}`;
         const response = await fetch(api, {
             headers: {

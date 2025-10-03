@@ -3,8 +3,9 @@ import ChatIcon from '@mui/icons-material/Chat';
 import SendIcon from '@mui/icons-material/Send';
 import { useState } from "react";
 import styled from "@emotion/styled";
-import Socket from "./context/Socket";
+import Socket from "./context/Socket.js";
 import { useEffect } from "react";
+import { useRef } from "react";
 
 const Item = styled(Box)({
     paddingInline: 25,
@@ -14,33 +15,31 @@ const Item = styled(Box)({
     width: 'fit-content'
 })
 
-function Chat({ roomid }) {
+function Chat({ roomid, messages, setmessages, setunread }) {
     const [send, setsend] = useState("")
-    const [messages, setmessages] = useState([])
+    const messagesEndRef = useRef(null);
 
     function SendMessage() {
+        setmessages(prevMessages => [...prevMessages, { who: Socket.id, message: send }])
+        Socket.emit("send-message", { roomid: roomid, id: Socket.id, message: { who: Socket.id, message: send } })
         setsend("")
-        Socket.emit("send-message", { roomid: roomid, message: { who: Socket.id, message: send } })
     }
 
     useEffect(() => {
-        Socket.on("receive-message", ({ message }) => {
-            setmessages(prevMessages => [...prevMessages, message])
-        })
-
-        return () => {
-            Socket.off("receive-message")
+        setunread(false)
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
         }
-    }, [])
+    }, [messages])
 
     return (
         <>
             <Box component={'section'}>
-                <Paper elevation={5} sx={{ padding: 2 }}>
-                    <Box component={'div'} sx={{ marginBottom: 5, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Paper elevation={5} sx={{ padding: 1.5 }}>
+                    <Box component={'div'} sx={{ marginBottom: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <Chip label="Chat" icon={<ChatIcon />} sx={{ width: '65%' }} />
                     </Box>
-                    <Box component={'div'} sx={{ marginBottom: 5, height: { lg: '45dvh', md: 250 }, overflow: 'auto', scrollbarWidth: "none" }}>
+                    <Box component={'div'} sx={{ marginBottom: 2, height: { xs: '50dvh', lg: '45dvh', md: 250 }, overflow: 'auto', scrollbarWidth: "none" }}>
                         <Stack>
                             {
                                 messages && messages.length != 0 && messages.map((element, index) => (
@@ -49,6 +48,7 @@ function Chat({ roomid }) {
                                     </Item>
                                 ))
                             }
+                            <div ref={messagesEndRef} />
                         </Stack>
                     </Box>
                     <Box component={'div'} display={'flex'} alignItems={'center'}>

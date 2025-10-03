@@ -38,7 +38,7 @@ io.on("connection", (socket) => {
 
     socket.on("join-room", ({ roomid }) => {
         if (!groups[roomid]) { return }
-        socket.join(roomid)
+        socket.join(socket.id)
         groups[roomid]?.push(socket.id)
     })
 
@@ -47,14 +47,15 @@ io.on("connection", (socket) => {
         io.to(members).emit("group-members", { members })
     })
 
-    socket.on("send-message", ({ roomid, message }) => {
-        const members = groups[roomid] || []
+    socket.on("send-message", ({ roomid, id, message }) => {
+        let members = groups[roomid] || []
+        members = members.filter(item => item !== id);
         io.to(members).emit("receive-message", { message })
     })
 
-    socket.on("send-video", ({ roomid, video }) => {
+    socket.on("send-video", ({ roomid, id, video }) => {
         let members = groups[roomid] || []
-        members = members.filter(item => item !== roomid);
+        members = members.filter(item => item !== id);
         io.to(members).emit("receive-video", { video })
         ready[roomid] = []
     })
@@ -64,7 +65,6 @@ io.on("connection", (socket) => {
         ready[roomid].push(id)
         if (ready[roomid].length == members.length) {
             io.to(members).emit("ready", {})
-            console.log(" ready "+ready[roomid])
             ready[roomid] = []
         }
     })
