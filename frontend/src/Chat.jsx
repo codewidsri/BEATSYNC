@@ -59,9 +59,7 @@ function Chat({ roomid, messages, setmessages, setunread }) {
                             value={send}
                             onChange={(e) => setsend(e.target.value)}
                         />
-                        <Button disabled={send ? false : true} onClick={SendMessage}>
-                            <SendIcon />
-                        </Button>
+                        <Button disabled={send ? false : true} onClick={SendMessage}><SendIcon /></Button>
                     </Box>
                 </Paper>
             </Box>

@@ -2,7 +2,7 @@ import { Box, Container, Grid, Tab, Tabs } from "@mui/material";
 import Search from "./Search.jsx";
 import Chat from "./Chat.jsx";
 import Users from "./Users.jsx";
-import PlayControl from "./PlayControl.jsx";
+// import PlayControl from "./PlayControl.jsx";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useParams } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
@@ -10,6 +10,7 @@ import MusicNoteIcon from '@mui/icons-material/MusicNote';
 import ChatIcon from '@mui/icons-material/Chat';
 import MarkUnreadChatAltIcon from '@mui/icons-material/MarkUnreadChatAlt';
 import Socket from "./context/Socket.js";
+// import PlayList from "./PlayList.jsx";
 
 function CustomTabPanel(props) {
     const { children, value, index } = props;
@@ -91,13 +92,21 @@ function Create() {
         }
     }, [apiready, result]);
 
+    //playlist
+    // const [playlist, setplaylist] = useState(null);
+
+    // function AddToPlayList(index) {
+    //     setplaylist(prev => [...prev, result[index]])
+    // }
+
     return (
         <>
             <Container maxWidth={false}>
                 <Box>
-                    <Grid container spacing={2}>
+                    <Grid container spacing={3}>
                         <Grid size={{ xs: 12, md: 3 }}>
                             <Users roomid={roomid} />
+                            {/* <PlayList playlist={playlist} /> */}
                         </Grid>
                         {
                             isMobile ? (
@@ -122,6 +131,7 @@ function Create() {
                                                 playingindex={playingindex}
                                                 videoId={videoId}
                                                 setvideoId={setvideoId}
+                                                // AddToPlayList={AddToPlayList}
                                             />
                                         </CustomTabPanel>
                                         <CustomTabPanel value={value} index={1}>

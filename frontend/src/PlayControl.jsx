@@ -7,7 +7,7 @@ import PauseCircleIcon from '@mui/icons-material/PauseCircle';
 function PlayControl() {
     return (
         <>
-            <Box component={'section'} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Box component={'section'} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
                 <Button>
                     <SkipPreviousIcon fontSize="large"/>
                 </Button>

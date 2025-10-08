@@ -24,8 +24,8 @@ function Root() {
 
   const dark = {
     mode: "dark",
-    primary: { main: "#dbcacaff" },
-    secondary: { main: "#ff4d00ff" },
+    primary: { main: "#ffffffff" },
+    secondary: { main: "#ffffffff" },
     background: {
       default: "#1f1e1eff",
       paper: "#1f1e1eff"
@@ -38,6 +38,15 @@ function Root() {
 
   const theme = createTheme({
     palette: mode == 'light' ? light : dark,
+    components : {
+      MuiOutlinedInput:{
+        styleOverrides:{
+          root:{
+            borderRadius : '10px',
+          }
+        }
+      },
+    }
   })
 
   const toggle = () => {

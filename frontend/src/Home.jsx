@@ -57,14 +57,14 @@ function Home() {
                                             onChange={(e) => setroomid(e.target.value)}
                                         />
                                     </FormControl>
-                                    <Button fullWidth sx={{ mt: 2, borderRadius: 10, padding: 1.5 }} size="small" variant="contained" onClick={JoinRoom}>
-                                        <TelegramIcon sx={{ color: 'white', marginInline: 1 }} />
+                                    <Button fullWidth sx={{ mt: 2, borderRadius: 10, padding: 1.5 }} size="small" variant="contained" onClick={JoinRoom} startIcon={<TelegramIcon />}>
+                                        {/* <TelegramIcon sx={{ color: 'white', marginInline: 1 }} /> */}
                                         <Typography variant="body2">Join</Typography>
                                     </Button>
                                 </Box>
                                 <Typography variant="body1" textAlign={'center'} gutterBottom sx={{ mt: 1, fontWeight: 'bold' }}>(or)</Typography>
-                                <Button fullWidth sx={{ mt: 1, borderRadius: 10, padding: 1.5 }} variant="contained" size="small" onClick={CreateRoom}>
-                                    <ControlPointIcon sx={{ color: 'white', marginInline: 1 }} />
+                                <Button fullWidth sx={{ mt: 1, borderRadius: 10, padding: 1.5 }} variant="contained" size="small" onClick={CreateRoom} startIcon={<ControlPointIcon />}>
+                                    {/* <ControlPointIcon sx={{ color: 'white', marginInline: 1 }} /> */}
                                     <Typography variant="body2">Create New Room</Typography>
                                 </Button>
                             </CardContent>

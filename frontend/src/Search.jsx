@@ -1,8 +1,9 @@
-import { Box, Button, Card, CardContent, Grid, IconButton, Paper, TextField, Typography } from "@mui/material";
+import { Box, Button, Card, CardContent, Chip, Grid, IconButton, Paper, TextField, Typography } from "@mui/material";
 import axios from "axios";
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import PauseCircleIcon from '@mui/icons-material/PauseCircle';
 import SearchIcon from '@mui/icons-material/Search';
+// import QueueMusicIcon from '@mui/icons-material/QueueMusic';
 import { useEffect } from "react";
 import Socket from "./context/Socket.js";
 
@@ -14,7 +15,6 @@ function Search({ roomid, result, setresult, searchquery, setsearchquery, player
         headers: { "Content-Type": "application/json" }
       }
       const response = await axios.post(`${import.meta.env.VITE_BACKEND}search`, { searchquery }, configuration)
-      console.log(response.data)
       setresult(response.data)
     } catch (error) {
       console.log(error)
@@ -96,12 +96,13 @@ function Search({ roomid, result, setresult, searchquery, setsearchquery, player
               <Box component={'div'} sx={{ height: { xs: '55dvh', lg: '61dvh' }, overflow: 'auto', scrollbarWidth: "none" }}>
                 {
                   result && result.map((element, index) => (
-                    <Card key={index}>
+                    <Card key={index} sx={{marginBlock:2}}>
                       <Box component={'div'} id={`ytplayer-${index}`} sx={{ height: 200, width: '100%' }}></Box>
-                      <Box display={'flex'} alignItems={'center'}>
+                      <Box display={'flex'} alignItems={'center'} justifyContent={'space-between'}>
                         <CardContent>
-                          <Typography variant="subtitle1" gutterBottom>{element.title}</Typography>
-                          <Typography variant="subtitle1" gutterBottom>{element.duration}</Typography>
+                          <Typography variant="body1" gutterBottom>{element.title}</Typography>
+                          <Chip label={element.duration} sx={{ fontWeight: 'bold' }} />
+                          {/* <Button variant="contained" sx={{ textTransform: "none", marginInlineStart: 2 }} startIcon="Add to Playlist" endIcon={<QueueMusicIcon />} onClick={()=>AddToPlayList(index)} /> */}
                         </CardContent>
                         {
                           playingindex == index ? (
